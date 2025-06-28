@@ -94,6 +94,7 @@ public class TransactionService {
         res.setType(transaction.getType());
         res.setTransactionDate(transaction.getTransactionDate());
         res.setCreatedAt(transaction.getCreatedAt());
+        res.setCategory(transaction.getCategory());
 
         return res;
     }

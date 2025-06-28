@@ -18,6 +18,5 @@ public class Category {
 
     private String name;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
-    private Instant createdAt;
+    private Long image;
 }

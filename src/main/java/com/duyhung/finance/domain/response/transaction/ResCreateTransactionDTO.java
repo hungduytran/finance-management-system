@@ -1,6 +1,7 @@
 package com.duyhung.finance.domain.response.transaction;
 
 import com.duyhung.finance.domain.Account;
+import com.duyhung.finance.domain.Category;
 import com.duyhung.finance.domain.Transaction;
 import com.duyhung.finance.util.constant.TransactionType;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -25,6 +26,8 @@ public class ResCreateTransactionDTO {
 
     @Enumerated(EnumType.STRING)
     private TransactionType type;
+
+    private Category category;
 
 //    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
     private Instant transactionDate;

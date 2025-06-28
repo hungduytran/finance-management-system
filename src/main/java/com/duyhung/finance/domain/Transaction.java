@@ -27,9 +27,9 @@ public class Transaction {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-//    @ManyToOne
-//    @JoinColumn(name = "category_id", nullable = false)
-//    private Category category;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
     @Enumerated(EnumType.STRING)
     private TransactionType type;
