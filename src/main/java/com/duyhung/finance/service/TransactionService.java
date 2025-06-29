@@ -32,6 +32,10 @@ public class TransactionService {
         this.userService = userService;
     }
 
+    public Optional<Transaction> getTransactionById(Long id) {
+        return transactionRepository.findById(id);
+    }
+
     @Transactional
     public ResCreateTransactionDTO createTransaction(Transaction transaction) {
         // Lấy user hiện tại
@@ -72,7 +76,7 @@ public class TransactionService {
     }
 
 
-    private ResCreateTransactionDTO convertToResCreateTransactionDTO(Transaction transaction) {
+    public ResCreateTransactionDTO convertToResCreateTransactionDTO(Transaction transaction) {
         ResCreateTransactionDTO res = new ResCreateTransactionDTO();
         ResCreateTransactionDTO.AccountTransaction accountTransaction = new ResCreateTransactionDTO.AccountTransaction();
         ResCreateTransactionDTO.UserTransaction userTransaction = new ResCreateTransactionDTO.UserTransaction();
@@ -98,6 +102,7 @@ public class TransactionService {
 
         return res;
     }
+
 
     public ResultPaginationDTO getAllTransactionsByUser(Specification<Transaction> spec, Pageable pageable) {
         User currentUser = userService.getCurrentUser();
@@ -131,6 +136,75 @@ public class TransactionService {
 
         return rs;
     }
+
+    @Transactional
+    public Transaction updateTransaction(Long id, Transaction updated) {
+        User currentUser = userService.getCurrentUser();
+
+        Transaction oldTransaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        Account account = accountRepository.findById(updated.getAccount().getId())
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        if (account.getUser().getId() != currentUser.getId()) {
+            throw new RuntimeException("Account does not belong to the current user");
+        }
+
+
+        if (oldTransaction.getType().equals(TransactionType.EXPENSE)) {
+            account.setBalance(account.getBalance() + oldTransaction.getAmount());
+        } else if (oldTransaction.getType().equals(TransactionType.INCOME)) {
+            account.setBalance(account.getBalance() - oldTransaction.getAmount());
+        }
+
+        if (updated.getType().equals(TransactionType.EXPENSE)) {
+            if (account.getBalance() < updated.getAmount()) {
+                throw new RuntimeException("Insufficient balance for update");
+            }
+            account.setBalance(account.getBalance() - updated.getAmount());
+        } else if (updated.getType().equals(TransactionType.INCOME)) {
+            account.setBalance(account.getBalance() + updated.getAmount());
+        }
+
+        oldTransaction.setAccount(account);
+        oldTransaction.setCategory(updated.getCategory());
+        oldTransaction.setType(updated.getType());
+        oldTransaction.setAmount(updated.getAmount());
+        oldTransaction.setDescription(updated.getDescription());
+        oldTransaction.setTransactionDate(updated.getTransactionDate());
+
+        accountRepository.save(account);
+        return transactionRepository.save(oldTransaction);
+    }
+
+
+
+    @Transactional
+    public void deleteTransaction(Long id) {
+        User currentUser = userService.getCurrentUser();
+
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        Account account = transaction.getAccount();
+
+        if (account.getUser().getId() != currentUser.getId()) {
+            throw new RuntimeException("Account does not belong to the current user");
+        }
+
+
+        if (transaction.getType().equals(TransactionType.EXPENSE)) {
+            account.setBalance(account.getBalance() + transaction.getAmount());
+        } else if (transaction.getType().equals(TransactionType.INCOME)) {
+            account.setBalance(account.getBalance() - transaction.getAmount());
+        }
+
+        accountRepository.save(account);
+        transactionRepository.deleteById(id);
+    }
+
+
 
     public Optional<Transaction> findById(Long id) {
         return transactionRepository.findById(id);

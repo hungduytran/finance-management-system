@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -47,8 +48,10 @@ public class AccountService {
         return accountRepository.findByUserId(currentUser.getId());
     }
 
+    public Optional<Account> findAccountById(Long accountId) {
+        return accountRepository.findById(accountId);
+    }
 
-    // Lấy tài khoản theo ID
     public Account getAccountById(Long accountId) {
         return accountRepository.findById(accountId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
@@ -71,30 +74,6 @@ public class AccountService {
         return resCreateAccountDTO;
     }
 
-//    public ResultPaginationDTO getAllAccountsByUser(Specification<Account> spec, Pageable pageable) {
-//        Page<Account> pageAccounts =this.accountRepository.findAll(spec, pageable);
-//        ResultPaginationDTO rs = new ResultPaginationDTO();
-//        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-//
-//        mt.setPage(pageable.getPageNumber() + 1);
-//        mt.setPageSize(pageable.getPageSize());
-//
-//        mt.setPages(pageAccounts.getTotalPages());
-//        mt.setTotal(pageAccounts.getTotalElements());
-//
-//        rs.setMeta(mt);
-//
-//        //remove sensitive data
-//        List<ResCreateAccountDTO> listUser = pageAccounts.getContent()
-//                .stream()
-//                .map(item -> this.convertToResCreateAccountDTO(item))
-//                .collect(Collectors.toList());
-//
-//
-//        rs.setResult(listUser);
-//
-//        return rs;
-//    }
 
     public ResultPaginationDTO getAllAccountsByUser(Specification<Account> spec, Pageable pageable) {
         // Lấy user hiện tại
@@ -129,6 +108,25 @@ public class AccountService {
         return rs;
     }
 
+    @Transactional
+    public Account updateAccount(Long accountId, Account accountDetails) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        account.setName(accountDetails.getName());
+        account.setDescription(accountDetails.getDescription());
+        account.setBalance(accountDetails.getBalance());
+
+        return accountRepository.save(account);
+    }
+
+    @Transactional
+    public void deleteAccount(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        accountRepository.delete(account);
+    }
 
 
     public Optional<Account> findById(Long id) {

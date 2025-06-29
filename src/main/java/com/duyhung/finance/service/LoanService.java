@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +36,10 @@ public class LoanService {
     public Loan getLoanById(Long id) {
         return this.loanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Loan not found"));
+    }
+
+    public Optional<Loan> findLoanById(Long id) {
+        return this.loanRepository.findById(id);
     }
 
     public ResCreateLoanDTO convertToResCreateLoanDTO(Loan loan) {
@@ -86,11 +91,37 @@ public class LoanService {
         return rs;
     }
 
-    public Loan updateLoan(Loan loan) {
-        return loanRepository.save(loan);
+    public Loan updateLoan(Long id, Loan loanUpdate) {
+        Loan existingLoan = loanRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Loan not found"));
+
+        User currentUser = userService.getCurrentUser();
+        if (existingLoan.getUser().getId() != currentUser.getId()) {
+            throw new RuntimeException("Not authorized to update this loan");
+        }
+
+
+        existingLoan.setLenderName(loanUpdate.getLenderName());
+        existingLoan.setTotalAmount(loanUpdate.getTotalAmount());
+        existingLoan.setPaidAmount(loanUpdate.getPaidAmount());
+        existingLoan.setBorrowedDate(loanUpdate.getBorrowedDate());
+        existingLoan.setDueDate(loanUpdate.getDueDate());
+        existingLoan.setType(loanUpdate.getType());
+
+        return loanRepository.save(existingLoan);
     }
 
     public void deleteLoanById(Long id) {
+        Loan loan = loanRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Loan not found"));
+
+        User currentUser = userService.getCurrentUser();
+        if (loan.getUser().getId() != currentUser.getId()) {
+            throw new RuntimeException("Not authorized to delete this loan");
+        }
+
+
         loanRepository.deleteById(id);
     }
+
 }
