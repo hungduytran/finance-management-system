@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager; // Inject AuthenticationManager
+    private final AuthenticationManager authenticationManager;
     private final SecurityUtil securityUtil;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
@@ -35,7 +35,6 @@ public class AuthController {
     @Value("${duyhung.jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenExpiration;
 
-    // Inject AuthenticationManager into the constructor
     public AuthController(AuthenticationManager authenticationManager, SecurityUtil securityUtil, UserService userService, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.securityUtil = securityUtil;
