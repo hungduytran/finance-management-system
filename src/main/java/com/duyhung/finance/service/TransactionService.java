@@ -1,6 +1,7 @@
 package com.duyhung.finance.service;
 
 import com.duyhung.finance.domain.Account;
+import com.duyhung.finance.domain.DailySumDTO;
 import com.duyhung.finance.domain.Transaction;
 import com.duyhung.finance.domain.User;
 import com.duyhung.finance.domain.response.ResultPaginationDTO;
@@ -16,8 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -204,6 +209,84 @@ public class TransactionService {
         transactionRepository.deleteById(id);
     }
 
+//    public Map<String, Object> getWeeklySummary() {
+//        User currentUser = userService.getCurrentUser();
+//
+//        Instant now = Instant.now();
+//        Instant startDate = now.minus(7, ChronoUnit.DAYS);
+//
+//        Map<String, Object> response = new HashMap<>();
+//
+//        List<Object[]> incomeData = transactionRepository.sumAmountByDateAndType(
+//                currentUser.getId(), startDate, now, TransactionType.INCOME);
+//
+//        List<Object[]> expenseData = transactionRepository.sumAmountByDateAndType(
+//                currentUser.getId(), startDate, now, TransactionType.EXPENSE);
+//
+//        response.put("income", convertResult(incomeData));
+//        response.put("expense", convertResult(expenseData));
+//
+//        return response;
+//    }
+//
+//    private Map<String, Double> convertResult(List<Object[]> rawData) {
+//        Map<String, Double> result = new LinkedHashMap<>();
+//        for (Object[] row : rawData) {
+//            result.put(row[0].toString(), ((Number) row[1]).doubleValue());
+//        }
+//        return result;
+//    }
+
+    public Map<String, Object> getWeeklySummary() {
+        User currentUser = userService.getCurrentUser();
+
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        LocalDate startDate = today.minusDays(6);
+
+        Instant startInstant = startDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
+        Instant endInstant = today.plusDays(1).atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
+
+        // Lấy dữ liệu từ DB
+        List<Object[]> incomeRaw = transactionRepository.sumAmountByDateAndType(
+                currentUser.getId(), startInstant, endInstant, TransactionType.INCOME);
+
+        List<Object[]> expenseRaw = transactionRepository.sumAmountByDateAndType(
+                currentUser.getId(), startInstant, endInstant, TransactionType.EXPENSE);
+
+        // Chuyển dữ liệu thành Map<LocalDate, Double>
+        Map<LocalDate, Double> incomeMap = convertToMap(incomeRaw);
+        Map<LocalDate, Double> expenseMap = convertToMap(expenseRaw);
+
+        List<String> labels = new ArrayList<>();
+        List<Double> income = new ArrayList<>();
+        List<Double> expense = new ArrayList<>();
+
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = startDate.plusDays(i);
+            Instant isoInstant = date.atStartOfDay(ZoneOffset.UTC).toInstant();
+            labels.add(isoInstant.toString());
+
+            income.add(incomeMap.getOrDefault(date, 0.0));
+            expense.add(expenseMap.getOrDefault(date, 0.0));
+        }
+
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("labels", labels);
+        result.put("income", income);
+        result.put("expense", expense);
+        return result;
+    }
+
+    private Map<LocalDate, Double> convertToMap(List<Object[]> raw) {
+        Map<LocalDate, Double> map = new HashMap<>();
+        for (Object[] row : raw) {
+            LocalDate date = ((java.sql.Date) row[0]).toLocalDate();
+            Double amount = ((Number) row[1]).doubleValue();
+            map.put(date, amount);
+        }
+        return map;
+    }
 
 
     public Optional<Transaction> findById(Long id) {

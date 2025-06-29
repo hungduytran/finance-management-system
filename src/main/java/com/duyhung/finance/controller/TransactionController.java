@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -73,6 +74,10 @@ public class TransactionController {
 
     }
 
+    @GetMapping("/weekly-summary")
+    public ResponseEntity<Map<String, Object>> getWeeklySummary() {
+        return ResponseEntity.ok(transactionService.getWeeklySummary());
+    }
 
 }
 

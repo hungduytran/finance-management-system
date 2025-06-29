@@ -61,7 +61,7 @@ public class AuthController {
     public ResponseEntity<ResLoginDTO> login(@RequestBody ReqLoginDTO reqLoginDTO) {
         // Authenticate user with username and password
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(reqLoginDTO.getUsername(), reqLoginDTO.getPassword());
+                new UsernamePasswordAuthenticationToken(reqLoginDTO.getEmail(), reqLoginDTO.getPassword());
 
         // Perform authentication
         Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
@@ -71,7 +71,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Retrieve user details from the database
-        User currentUserDB = this.userService.findByUsername(reqLoginDTO.getUsername());
+        User currentUserDB = this.userService.findByUsername(reqLoginDTO.getEmail());
 
         ResLoginDTO resLoginDTO = new ResLoginDTO();
         if (currentUserDB != null) {
@@ -87,10 +87,10 @@ public class AuthController {
         resLoginDTO.setAccesstoken(access_token);
 
         // Generate Refresh Token
-        String refresh_token = this.securityUtil.createRefreshToken(reqLoginDTO.getUsername(), resLoginDTO);
+        String refresh_token = this.securityUtil.createRefreshToken(reqLoginDTO.getEmail(), resLoginDTO);
 
         // Update refresh token in the database
-        this.userService.updateUserToken(refresh_token, reqLoginDTO.getUsername());
+        this.userService.updateUserToken(refresh_token, reqLoginDTO.getEmail());
 
         // Set refresh token in the cookie
         ResponseCookie resCookie = ResponseCookie
