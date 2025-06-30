@@ -91,6 +91,22 @@ public class LoanService {
         return rs;
     }
 
+    public List<ResCreateLoanDTO> getAllLoansByUserNoPagination(Specification<Loan> spec) {
+        User currentUser = userService.getCurrentUser();
+
+        Specification<Loan> userSpec = (root, query, cb) ->
+                cb.equal(root.get("user").get("id"), currentUser.getId());
+
+        Specification<Loan> combinedSpec = spec == null ? userSpec : spec.and(userSpec);
+
+        List<Loan> loans = loanRepository.findAll(combinedSpec);
+
+        return loans.stream()
+                .map(this::convertToResCreateLoanDTO)
+                .collect(Collectors.toList());
+    }
+
+
     public Loan updateLoan(Long id, Loan loanUpdate) {
         Loan existingLoan = loanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Loan not found"));

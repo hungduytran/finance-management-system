@@ -108,6 +108,21 @@ public class AccountService {
         return rs;
     }
 
+    public List<ResCreateAccountDTO> getAllAccountsByUserNoPagination(Specification<Account> spec) {
+        User currentUser = userService.getCurrentUser();
+
+        Specification<Account> userSpec = (root, query, cb) ->
+                cb.equal(root.get("user").get("id"), currentUser.getId());
+
+        Specification<Account> combinedSpec = spec == null ? userSpec : spec.and(userSpec);
+
+        List<Account> accounts = accountRepository.findAll(combinedSpec);
+
+        return accounts.stream()
+                .map(this::convertToResCreateAccountDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public Account updateAccount(Long accountId, Account accountDetails) {
         Account account = accountRepository.findById(accountId)

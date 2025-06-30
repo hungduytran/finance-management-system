@@ -86,6 +86,21 @@ public class BudgetService {
         return rs;
     }
 
+    public List<ResBudgetDTO> getAllBudgetsByUserNoPagination(Specification<Budget> spec) {
+        User currentUser = userService.getCurrentUser();
+
+        Specification<Budget> userSpec = (root, query, cb) ->
+                cb.equal(root.get("user").get("id"), currentUser.getId());
+
+        Specification<Budget> combinedSpec = spec == null ? userSpec : spec.and(userSpec);
+
+        List<Budget> budgets = budgetRepository.findAll(combinedSpec);
+
+        return budgets.stream()
+                .map(this::convertToResBudgetDTO)
+                .collect(Collectors.toList());
+    }
+
     public ResBudgetDTO convertToResBudgetDTO(Budget budget) {
         ResBudgetDTO dto = new ResBudgetDTO();
         dto.setId(budget.getId());
