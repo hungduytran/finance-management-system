@@ -58,7 +58,11 @@ public class AuthController {
 
     // Login user
     @PostMapping("/auth/login")
-    public ResponseEntity<ResLoginDTO> login(@RequestBody ReqLoginDTO reqLoginDTO) {
+    public ResponseEntity<ResLoginDTO> login(@RequestBody ReqLoginDTO reqLoginDTO) throws IdInvalidException {
+        if (!this.userService.existsByEmail(reqLoginDTO.getEmail())) {
+            throw new IdInvalidException("Email " + reqLoginDTO.getEmail() + " does not exist.");
+        }
+
         // Authenticate user with username and password
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(reqLoginDTO.getEmail(), reqLoginDTO.getPassword());

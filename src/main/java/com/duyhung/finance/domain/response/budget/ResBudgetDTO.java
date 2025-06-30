@@ -14,6 +14,7 @@ import java.time.Instant;
 public class ResBudgetDTO {
     private Long id;
     private Double amount;
+    private Double sentAmount;
     private Integer month;
     private Integer year;
     private Instant createdAt;

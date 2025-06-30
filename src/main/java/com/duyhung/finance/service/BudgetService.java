@@ -44,6 +44,7 @@ public class BudgetService {
             throw new RuntimeException("Unauthorized");
         }
         existingBudget.setAmount(updatedBudget.getAmount());
+        existingBudget.setSentAmount(updatedBudget.getSentAmount());
         existingBudget.setMonth(updatedBudget.getMonth());
         existingBudget.setYear(updatedBudget.getYear());
         existingBudget.setCategory(updatedBudget.getCategory());
@@ -89,6 +90,8 @@ public class BudgetService {
         ResBudgetDTO dto = new ResBudgetDTO();
         dto.setId(budget.getId());
         dto.setAmount(budget.getAmount());
+        dto.setSentAmount(budget.getSentAmount());
+        dto.setMonth(budget.getMonth());
         dto.setMonth(budget.getMonth());
         dto.setYear(budget.getYear());
         dto.setCreatedAt(budget.getCreatedAt());

@@ -26,6 +26,8 @@ public class Budget {
 
     private Double amount;
 
+    private Double sentAmount;
+
     private Integer month;
     private Integer year;
 

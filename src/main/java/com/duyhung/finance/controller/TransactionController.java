@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -39,15 +40,49 @@ public class TransactionController {
         }
     }
 
+//    @GetMapping("/transactions")
+//    @ApiMessage("fetch all transactions")
+//    public ResponseEntity<ResultPaginationDTO> getAllTransactions(
+//            @Filter Specification<Transaction> spec,
+//            Pageable pageable
+//    ) {
+//
+//        return ResponseEntity.ok(this.transactionService.getAllTransactionsByUser(spec, pageable));
+//    }
+
+    @GetMapping("/transactions/all")
+    @ApiMessage("Fetch all transactions")
+    public ResponseEntity<List<ResCreateTransactionDTO>> getAllTransactionsNoPagination(
+            @Filter Specification<Transaction> spec
+    ) {
+        return ResponseEntity.ok(transactionService.getAllTransactionsByUserNoPagination(spec));
+    }
+
+
     @GetMapping("/transactions")
-    @ApiMessage("fetch all transactions")
+    @ApiMessage("Fetch all transactions by user in specific month/year")
+    public ResponseEntity<List<ResCreateTransactionDTO>> getAllTransactionsNoPagination(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @Filter Specification<Transaction> spec
+    ) {
+        return ResponseEntity.ok(
+                transactionService.getAllTransactionsByUserAndMonthYearNoPagination(spec, month, year)
+        );
+    }
+
+    @ApiMessage("fetch all transactions by user in specific month/year")
     public ResponseEntity<ResultPaginationDTO> getAllTransactions(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
             @Filter Specification<Transaction> spec,
             Pageable pageable
     ) {
-
-        return ResponseEntity.ok(this.transactionService.getAllTransactionsByUser(spec, pageable));
+        return ResponseEntity.ok(
+                transactionService.getAllTransactionsByUserAndMonthYear(spec, pageable, month, year)
+        );
     }
+
 
     @PutMapping("/transactions/{id}")
     public ResponseEntity<ResCreateTransactionDTO> updateTransaction(

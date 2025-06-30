@@ -142,6 +142,112 @@ public class TransactionService {
         return rs;
     }
 
+    //fetch all khong phan trang
+    public List<ResCreateTransactionDTO> getAllTransactionsByUserNoPagination(Specification<Transaction> spec) {
+        User currentUser = userService.getCurrentUser();
+
+        Specification<Transaction> userSpec = (root, query, cb) ->
+                cb.equal(root.get("user").get("id"), currentUser.getId());
+
+        Specification<Transaction> combinedSpec = spec == null ? userSpec : spec.and(userSpec);
+
+        List<Transaction> transactions = transactionRepository.findAll(combinedSpec);
+
+        return transactions.stream()
+                .map(this::convertToResCreateTransactionDTO)
+                .collect(Collectors.toList());
+    }
+
+
+    //lay theo thang, nam
+    public ResultPaginationDTO getAllTransactionsByUserAndMonthYear(
+            Specification<Transaction> spec,
+            Pageable pageable,
+            Integer month,
+            Integer year
+    ) {
+        User currentUser = userService.getCurrentUser();
+
+        // Specification lọc theo user
+        Specification<Transaction> userSpec = (root, query, cb) ->
+                cb.equal(root.get("user").get("id"), currentUser.getId());
+
+        // Specification lọc theo khoảng ngày trong tháng/năm
+        Specification<Transaction> dateSpec = null;
+        if (month != null && year != null) {
+            LocalDate start = LocalDate.of(year, month, 1);
+            LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+
+            dateSpec = (root, query, cb) ->
+                    cb.between(root.get("transactionDate"), start, end);
+        }
+
+        // Gộp tất cả spec
+        Specification<Transaction> combinedSpec = spec == null ? userSpec : spec.and(userSpec);
+        if (dateSpec != null) {
+            combinedSpec = combinedSpec.and(dateSpec);
+        }
+
+        // Truy vấn
+        Page<Transaction> pageTransactions = transactionRepository.findAll(combinedSpec, pageable);
+
+        // Gói kết quả
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+        mt.setPages(pageTransactions.getTotalPages());
+        mt.setTotal(pageTransactions.getTotalElements());
+
+        rs.setMeta(mt);
+
+        List<ResCreateTransactionDTO> listTransactionDTOS = pageTransactions.getContent()
+                .stream()
+                .map(this::convertToResCreateTransactionDTO)
+                .collect(Collectors.toList());
+
+        rs.setResult(listTransactionDTOS);
+        return rs;
+    }
+
+    //lay theo thang nam, khong phan trang
+    public List<ResCreateTransactionDTO> getAllTransactionsByUserAndMonthYearNoPagination(
+            Specification<Transaction> spec,
+            Integer month,
+            Integer year
+    ) {
+        User currentUser = userService.getCurrentUser();
+
+        // Filter by user
+        Specification<Transaction> userSpec = (root, query, cb) ->
+                cb.equal(root.get("user").get("id"), currentUser.getId());
+
+        // Filter by month/year if provided
+        Specification<Transaction> dateSpec = null;
+        if (month != null && year != null) {
+            LocalDate start = LocalDate.of(year, month, 1);
+            LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+
+            dateSpec = (root, query, cb) ->
+                    cb.between(root.get("transactionDate"), start, end);
+        }
+
+        // Combine all specs
+        Specification<Transaction> combinedSpec = spec == null ? userSpec : spec.and(userSpec);
+        if (dateSpec != null) {
+            combinedSpec = combinedSpec.and(dateSpec);
+        }
+
+        // Query all matching transactions
+        List<Transaction> transactions = transactionRepository.findAll(combinedSpec);
+
+        // Convert to DTOs
+        return transactions.stream()
+                .map(this::convertToResCreateTransactionDTO)
+                .collect(Collectors.toList());
+    }
+
+
     @Transactional
     public Transaction updateTransaction(Long id, Transaction updated) {
         User currentUser = userService.getCurrentUser();
