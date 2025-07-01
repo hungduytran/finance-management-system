@@ -110,15 +110,7 @@ public class BudgetService {
         dto.setMonth(budget.getMonth());
         dto.setYear(budget.getYear());
         dto.setCreatedAt(budget.getCreatedAt());
-
-        ResBudgetDTO.UserInfo userInfo = new ResBudgetDTO.UserInfo();
-        userInfo.setId(budget.getUser().getId());
-        dto.setUser(userInfo);
-
-        ResBudgetDTO.CategoryInfo cat = new ResBudgetDTO.CategoryInfo();
-        cat.setId(budget.getCategory().getId());
-        cat.setName(budget.getCategory().getName());
-        dto.setCategory(cat);
+        dto.setCategory(budget.getCategory());
 
         return dto;
     }

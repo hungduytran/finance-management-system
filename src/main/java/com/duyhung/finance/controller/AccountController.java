@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -60,6 +61,11 @@ public class AccountController {
     }
 
 
+    @GetMapping("/accounts/charts")
+    @ApiMessage("Total balance summary in 90 days")
+    public ResponseEntity<Map<String, Object>> getAccountBalanceChart() {
+        return ResponseEntity.ok(accountService.getBalanceSummaryEvery9Days());
+    }
 
 
     @GetMapping("/accounts/{accountId}")

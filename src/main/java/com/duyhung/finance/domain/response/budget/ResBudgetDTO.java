@@ -1,5 +1,6 @@
 package com.duyhung.finance.domain.response.budget;
 
+import com.duyhung.finance.domain.Category;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,19 +20,9 @@ public class ResBudgetDTO {
     private Integer year;
     private Instant createdAt;
 
-    private UserInfo user;
-    private CategoryInfo category;
+    private Category category;
 
-    @Getter
-    @Setter
-    public static class UserInfo {
-        private Long id;
-    }
 
-    @Getter
-    @Setter
-    public static class CategoryInfo {
-        private Long id;
-        private String name;
-    }
+
+
 }

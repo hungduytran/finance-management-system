@@ -42,5 +42,7 @@ List<Object[]> sumAmountByDateAndType(
         @Param("endDate") Instant endDate,
         @Param("type") TransactionType type
 );
+    List<Transaction> findByUserIdAndTransactionDateBetween(Long userId, Instant from, Instant to);
 
+    List<Transaction> findByUserIdAndTransactionDateBetween(long userId, Instant transactionDateAfter, Instant transactionDateBefore);
 }
