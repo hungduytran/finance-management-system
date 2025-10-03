@@ -1,0 +1,91 @@
+package com.duyhung.finance.util.error;
+
+import com.duyhung.finance.domain.response.RestResponse;
+import jakarta.persistence.NoResultException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+public class GlobalException {
+
+    //handle all exception
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<RestResponse<Object>> handleAllException(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        res.setMessage(ex.getMessage());
+        res.setError("Internal Server Error");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
+    }
+
+
+    @ExceptionHandler(value = {
+            UsernameNotFoundException.class,
+            BadCredentialsException.class,
+            IdInvalidException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleIdException(Exception ex) {
+        RestResponse<Object> res = new RestResponse<>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setMessage(ex.getMessage());
+        res.setError("Exception occurred");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
+
+    // Xử lý lỗi validation
+    @ExceptionHandler(value = {
+            NoResultException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleNoResultException(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.NOT_FOUND.value());
+        res.setMessage(ex.getMessage());
+        res.setError("404 Not Found, URL may not exist");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
+    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+
+    public ResponseEntity<RestResponse<Object>> validException(MethodArgumentNotValidException ex) {
+        RestResponse<Object> res = new RestResponse<>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setError("Validation failed");
+
+        StringBuilder errorMessage = new StringBuilder();
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            errorMessage.append(error.getField()).append(": ").append(error.getDefaultMessage()).append("; ");
+        });
+
+        res.setMessage(errorMessage.toString().isEmpty() ? "Invalid input" : errorMessage.toString());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
+
+//    @ExceptionHandler(value = {
+//
+//            StorageException.class,
+//    })
+//    public ResponseEntity<RestResponse<Object>> handleFileUploadException(Exception ex) {
+//        RestResponse<Object> res = new RestResponse<>();
+//        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+//        res.setMessage(ex.getMessage());
+//        res.setError("Exception uploading file");
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+//    }
+//
+//    @ExceptionHandler(value = {
+//            PermissionException.class,
+//    })
+//    public ResponseEntity<Object> handlePermissionException(Exception ex){
+//        RestResponse<Object> res = new RestResponse<Object>();
+//        res.setStatusCode(HttpStatus.FORBIDDEN.value());
+//        res.setError("FORBIDDEN");
+//        res.setMessage(ex.getMessage());
+//        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(res);
+//    }
+
+}
